@@ -1,0 +1,7 @@
+---
+- name: Install php packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    install_recommends: no
+  loop: "{{ packages }}"

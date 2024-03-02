@@ -1,0 +1,43 @@
+---
+- name: Create directory for site
+  ansible.builtin.file:
+    path: /var/www/mydomain.com
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Check the file 
+  ansible.builtin.stat:
+    path: /var/www/mydomain.com/wp-settings.php
+  register: file_check
+
+- name: Download Wordpress 6.4.3
+  ansible.builtin.get_url:
+    url: https://wordpress.org/wordpress-6.4.3.tar.gz
+    dest: /var/www/
+  when: file_check.stat.exists == false
+
+- name: Extract wordpress-6.4.3.tar.gz
+  ansible.builtin.unarchive:
+    src: /var/www/wordpress-6.4.3.tar.gz
+    dest: /var/www/
+    remote_src: yes
+  when: file_check.stat.exists == false
+
+- name: Move extracted files
+  ansible.builtin.copy:
+    src: /var/www/wordpress/
+    dest: /var/www/mydomain.com/
+    remote_src: true
+    owner: www-data
+    group: www-data
+  when: file_check.stat.exists == false
+
+- name: Delete unused directories and files
+  ansible.builtin.file:
+      path: "{{ item }}"
+      state: absent
+  loop:
+     - /var/www/wordpress-6.4.3.tar.gz
+     - /var/www/wordpress
